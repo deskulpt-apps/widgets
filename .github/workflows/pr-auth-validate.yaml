@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Ensure base and head are fetched
         shell: bash
@@ -30,7 +30,7 @@ jobs:
           version: latest
 
       - name: Node setup
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: lts/*
           cache: "pnpm"
