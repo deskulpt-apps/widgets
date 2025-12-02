@@ -97,4 +97,7 @@ jobs:
       - name: Display publish plan
         if: ${{ steps.diff.outputs.CHANGED_HANDLES != '' }}
         shell: bash
-        run: cat .publish-plan.ndjson
+        env:
+          PUBLISH_PLAN_PATH: ".publish-plan.ndjson"
+        run: |
+          test -s "$PUBLISH_PLAN_PATH" && cat "$PUBLISH_PLAN_PATH" || echo "No publish plan."

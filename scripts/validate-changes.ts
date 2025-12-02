@@ -154,6 +154,7 @@ for (const handle of changedHandles) {
         .trim()
         .split(/\s+/)
         .filter(Boolean);
+
       const spdxIds = extractSpdx(manifest.license);
       for (const spdxId of spdxIds) {
         if (!detectedLicenses.includes(spdxId)) {

@@ -16,7 +16,7 @@ jobs:
   validate-and-plan:
     runs-on: ubuntu-latest
     outputs:
-      CHANGED_HANDLES: ${{ steps.diff.outputs.CHANGED_HANDLES }}
+      HAS_PUBLISH_PLAN: ${{ steps.validate-changes.outputs.HAS_PUBLISH_PLAN }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -75,6 +75,7 @@ jobs:
 
       - name: Validate changes
         if: ${{ steps.diff.outputs.CHANGED_HANDLES != '' }}
+        id: validate-changes
         shell: bash
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -84,10 +85,16 @@ jobs:
           PUBLISH_PLAN_PATH: ".publish-plan.ndjson"
           LICENSE_DETECTION_SCRIPT: |
             licensee detect "$1" --json | jq -r '[.licenses[].spdx_id] | unique | join(" ")'
-        run: pnpm validate-changes
+        run: |
+          pnpm validate-changes
+          if [ -s "$PUBLISH_PLAN_PATH" ]; then
+            echo "HAS_PUBLISH_PLAN=1" >> $GITHUB_OUTPUT
+          else
+            echo "HAS_PUBLISH_PLAN=0" >> $GITHUB_OUTPUT
+          fi
 
       - name: Upload publish plan
-        if: ${{ steps.diff.outputs.CHANGED_HANDLES != '' }}
+        if: ${{ steps.validate-changes.outputs.HAS_PUBLISH_PLAN == '1' }}
         uses: actions/upload-artifact@v4
         with:
           name: publish-plan
@@ -100,7 +107,7 @@ jobs:
       contents: write
       packages: write
     needs: validate-and-plan
-    if: ${{ needs.validate-and-plan.outputs.CHANGED_HANDLES != '' }}
+    if: ${{ needs.validate-and-plan.outputs.HAS_PUBLISH_PLAN == '1' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
