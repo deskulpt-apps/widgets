@@ -54,7 +54,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          DIFF_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -E '^(publishers|widgets)/.*\.yaml$' || true)
+          DIFF_FILES=$(git diff --name-only --no-renames "$BASE_SHA" "$HEAD_SHA" | grep -E '^(publishers|widgets)/.*\.yaml$' || true)
           if [ -z "$DIFF_FILES" ]; then
             echo "No matching files changed."
             echo "CHANGED_PUBLISHERS=" >> $GITHUB_ENV

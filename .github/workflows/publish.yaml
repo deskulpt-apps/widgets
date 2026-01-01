@@ -63,7 +63,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          DIFF_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -E '^(publishers|widgets)/.*\.yaml$' || true)
+          DIFF_FILES=$(git diff --name-only --no-renames "$BASE_SHA" "$HEAD_SHA" | grep -E '^(publishers|widgets)/.*\.yaml$' || true)
           if [ -z "$DIFF_FILES" ]; then
             echo "No matching files changed."
             echo "CHANGED_PUBLISHERS=" >> $GITHUB_ENV
@@ -143,7 +143,7 @@ jobs:
       - name: Publish to GHCR and update registry
         shell: bash
         env:
-          GHCR_REPO_PREFIX: ghcr.io/${{ github.repository }}
+          GHCR_REPO_PREFIX: ghcr.io/${{ github.owner }}
         run: pnpm publish-changes
 
       - name: Publish registry updates

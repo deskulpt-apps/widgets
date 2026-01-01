@@ -8,7 +8,9 @@ import * as git from "./git.ts";
 export const SEMVER_REGEX =
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
-export const SAFE_IDENTIFIER_REGEX = /^[a-zA-Z0-9-_]+$/;
+// Safe identifier: lowercase letters, digits, underscores, hyphens; no leading,
+// trailing, or consecutive underscores or hyphens.
+export const SAFE_IDENTIFIER_REGEX = /^[a-z0-9]+(?:[_-][a-z0-9]+)*$/;
 
 const PublisherSchema = z
   .object({

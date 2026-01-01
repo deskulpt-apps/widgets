@@ -45,7 +45,7 @@ for (const it of publishPlan) {
   console.log(`::group::[${publisher}/${slug}] Publishing widget...`);
   const widgetDir =
     widget.path === undefined ? tempDir : path.join(tempDir, widget.path);
-  const remote = `${GHCR_REPO_PREFIX}/${publisher}/${slug}`;
+  const remote = `${GHCR_REPO_PREFIX}/widgets/${publisher}/${slug}`;
   const pushResult = await oras.push({
     src: widgetDir,
     dst: remote,
@@ -88,7 +88,7 @@ for (const it of registryUpdatePlan) {
     digest,
   };
 
-  const isPrivate = publisher === "__tests__";
+  const isPrivate = publisher === "deskulpt-test";
 
   if (entry === undefined) {
     entry = {
