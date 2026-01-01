@@ -88,6 +88,8 @@ for (const it of registryUpdatePlan) {
     digest,
   };
 
+  const isPrivate = publisher === "__tests__";
+
   if (entry === undefined) {
     entry = {
       publisher,
@@ -96,6 +98,7 @@ for (const it of registryUpdatePlan) {
       authors: manifest.authors,
       description: manifest.description,
       releases: [releaseData],
+      private: isPrivate ? true : undefined,
     };
     registryIndex.widgets.push(entry);
     console.log(`::group::[${publisher}/${slug}] Added new entry`);
@@ -108,6 +111,7 @@ for (const it of registryUpdatePlan) {
   entry.authors = manifest.authors;
   entry.description = manifest.description;
   entry.releases.unshift(releaseData); // Prepend new release
+  entry.private = isPrivate ? true : undefined;
   console.log(`::group::[${publisher}/${slug}] Updated entry`);
   console.log(entry);
   console.log("::endgroup::");

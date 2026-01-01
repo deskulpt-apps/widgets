@@ -47,11 +47,11 @@ const WidgetManifestAuthorSchema = z.union([
 // Widget manifest schema deskulpt.widget.json, but only keeping the fields we
 // care about with stricter validation for widgets to be published
 const WidgetManifestSchema = z.object({
-  name: z.string().max(80),
+  name: z.string().min(1).max(80),
   version: z.string().regex(SEMVER_REGEX),
   authors: z.array(WidgetManifestAuthorSchema).min(1),
   license: z.string(),
-  description: z.string().max(160),
+  description: z.string().min(1).max(160),
   homepage: z.url(),
 });
 
@@ -93,6 +93,7 @@ const RegistryEntrySchema = z.object({
   authors: z.array(WidgetManifestAuthorSchema).min(1),
   description: z.string(),
   releases: z.array(RegistryEntryReleaseSchema).min(1),
+  private: z.boolean().optional(),
 });
 
 const RegistryIndexSchema = z.object({
