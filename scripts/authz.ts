@@ -1,7 +1,7 @@
 import deepEqual from "fast-deep-equal";
 import * as github from "./lib/github.ts";
 import { die } from "./lib/utils.ts";
-import { parsePublisher, Publisher } from "./lib/schema.ts";
+import { Publisher, parsePublisher } from "./lib/schema.ts";
 
 for (const varName of [
   "AUTHOR_LOGIN",
@@ -39,7 +39,7 @@ async function authorizedByOwnerOrOrg({ user, organization }: Publisher) {
   ) {
     return "organization";
   }
-  return undefined;
+  return null;
 }
 
 for (const publisher of changedPublishers) {
@@ -61,7 +61,7 @@ for (const publisher of changedPublishers) {
 
   if (basePublisher === undefined) {
     const authRole = await authorizedByOwnerOrOrg(headPublisher);
-    if (authRole !== undefined) {
+    if (authRole !== null) {
       console.log(`[${publisher}] Authorized as ${authRole} publisher (new)`);
       continue;
     }
@@ -76,15 +76,15 @@ for (const publisher of changedPublishers) {
   }
 
   const authRole = await authorizedByOwnerOrOrg(headPublisher);
-  if (authRole !== undefined) {
+  if (authRole !== null) {
     console.log(
       `[${publisher}] Authorized as ${authRole} publisher (existing)`,
     );
     continue;
   }
 
-  const baseExtraMaintainers = basePublisher.extraMaintainers?.sort() ?? [];
-  const headExtraMaintainers = headPublisher.extraMaintainers?.sort() ?? [];
+  const baseExtraMaintainers = basePublisher.extraMaintainers?.toSorted() ?? [];
+  const headExtraMaintainers = headPublisher.extraMaintainers?.toSorted() ?? [];
   if (!deepEqual(baseExtraMaintainers, headExtraMaintainers)) {
     die(
       `[${publisher}] Only the publisher owner or an authorized organization member can modify extra maintainers`,

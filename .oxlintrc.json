@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": [],
+  "plugins": ["import", "oxc", "typescript", "unicorn"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "warn",
+    "pedantic": "warn"
+  },
+  "rules": {
+    "max-dependencies": "off",
+    "max-depth": "off",
+    "max-lines-per-function": "off",
+    "no-await-in-loop": "off",
+    "no-inline-comments": "off",
+    "sort-imports": ["error", { "ignoreDeclarationSort": true }]
+  }
+}

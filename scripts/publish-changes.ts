@@ -57,7 +57,7 @@ for (const it of publishPlan) {
   console.log("::endgroup::");
   console.log(`::notice::Published: https://${remote}@${pushResult.digest}`);
 
-  await github.attest({ name: remote, digest: pushResult.digest });
+  await github.attestProvenance({ name: remote, digest: pushResult.digest });
   console.log(`::notice::Attested: oci://${remote}@${pushResult.digest}`);
 
   let publishedAt = new Date().toISOString();

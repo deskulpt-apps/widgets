@@ -1,5 +1,5 @@
 import { exec } from "./process.ts";
-import { parseOrasPushOutput, Widget, WidgetManifest } from "./schema.ts";
+import { Widget, WidgetManifest, parseOrasPushOutput } from "./schema.ts";
 
 const ORAS_CLI = process.env["ORAS_CLI"] ?? "oras";
 
