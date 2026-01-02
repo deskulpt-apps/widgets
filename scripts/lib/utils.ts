@@ -11,8 +11,8 @@ export const tmpDir = promisify<
   { path: string; cleanup: () => Promise<void> }
 >((options, callback) =>
   tmp.dir(options, (error, path, cleanup) =>
-    error !== null
-      ? callback(error, undefined as any)
-      : callback(undefined, { path, cleanup: promisify(cleanup) }),
+    error === null
+      ? callback(undefined, { path, cleanup: promisify(cleanup) })
+      : callback(error, undefined as any),
   ),
 );

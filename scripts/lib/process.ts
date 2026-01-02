@@ -1,6 +1,6 @@
 import {
-  execFile,
   ExecFileOptionsWithStringEncoding,
+  execFile,
 } from "node:child_process";
 
 export function exec(

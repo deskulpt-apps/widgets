@@ -7,6 +7,8 @@
     "prepare": "husky",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "lint": "oxlint --max-warnings=0 --fix .",
+    "lint:check": "oxlint --max-warnings=0 .",
     "authz": "oxnode scripts/authz.ts",
     "validate-changes": "oxnode scripts/validate-changes.ts",
     "publish-changes": "oxnode scripts/publish-changes.ts"
@@ -33,11 +35,13 @@
     "@types/tmp": "^0.2.6",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
+    "oxlint": "^1.36.0",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3"
   },
   "prettier": {},
   "lint-staged": {
-    "*.{js,ts,json,yml,yaml,md}": "prettier --write"
+    "*.{js,ts,json,yml,yaml,md}": "prettier --write",
+    "*.ts": "oxlint --fix"
   }
 }

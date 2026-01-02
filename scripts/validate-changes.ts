@@ -9,10 +9,10 @@ import * as oras from "./lib/oras.ts";
 import { die, tmpDir } from "./lib/utils.ts";
 import { exec } from "./lib/process.ts";
 import {
+  PublishPlanEntry,
+  SAFE_IDENTIFIER_REGEX,
   parseWidgetManifest,
   parseWidgets,
-  SAFE_IDENTIFIER_REGEX,
-  PublishPlanEntry,
 } from "./lib/schema.ts";
 
 for (const varName of [

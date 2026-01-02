@@ -24,7 +24,7 @@ export async function isOrgMember(params: {
       },
     );
     return response.status === 204;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
