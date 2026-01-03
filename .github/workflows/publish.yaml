@@ -30,13 +30,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          REGISTRY_DIR="$RUNNER_TEMP/registry-wt"
+          API_DIR="$RUNNER_TEMP/api-wt"
           git fetch origin api/$API_VERSION:refs/remotes/origin/api/$API_VERSION --depth=1
-          git worktree add "$REGISTRY_DIR" origin/api/$API_VERSION
-          REGISTRY_CHECKPOINT=$(cat "$REGISTRY_DIR/.checkpoint" | tr -d '\r\n')
+          git worktree add "$API_DIR" origin/api/$API_VERSION
+          REGISTRY_CHECKPOINT=$(cat "$API_DIR/.checkpoint" | tr -d '\r\n')
           BASE_SHA=$(git merge-base "$REGISTRY_CHECKPOINT" "$HEAD_SHA")
           echo "BASE_SHA=$BASE_SHA" >> $GITHUB_ENV
-          git worktree remove -f "$REGISTRY_DIR" || true
+          git worktree remove -f "$API_DIR" || true
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -138,10 +138,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          REGISTRY_DIR="$RUNNER_TEMP/registry-wt"
+          API_DIR="$RUNNER_TEMP/api-wt"
           git fetch origin api/$API_VERSION:refs/remotes/origin/api/$API_VERSION --depth=1
-          git worktree add "$REGISTRY_DIR" origin/api/$API_VERSION
-          echo "REGISTRY_DIR=$REGISTRY_DIR" >> $GITHUB_ENV
+          git worktree add "$API_DIR" origin/api/$API_VERSION
+          echo "API_DIR=$API_DIR" >> $GITHUB_ENV
 
       - name: Publish to GHCR and update registry
         shell: bash
@@ -156,7 +156,7 @@ jobs:
           gh auth setup-git
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          cd "$REGISTRY_DIR"
+          cd "$API_DIR"
           echo "$HEAD_SHA" > .checkpoint
           git add -A
           git commit -m "publish: $HEAD_SHA"
