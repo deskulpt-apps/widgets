@@ -13,7 +13,7 @@ import {
 for (const varName of [
   "GHCR_REPO_PREFIX",
   "PUBLISH_PLAN_PATH",
-  "REGISTRY_DIR",
+  "API_DIR",
   "API_VERSION",
 ]) {
   if (process.env[varName] === undefined) {
@@ -23,12 +23,18 @@ for (const varName of [
 
 const GHCR_REPO_PREFIX = process.env["GHCR_REPO_PREFIX"]!;
 const PUBLISH_PLAN_PATH = process.env["PUBLISH_PLAN_PATH"]!;
-const REGISTRY_DIR = process.env["REGISTRY_DIR"]!;
+const API_DIR = process.env["API_DIR"]!;
 const API_VERSION = process.env["API_VERSION"]!;
 
-const publishPlan = await parsePublishPlan(PUBLISH_PLAN_PATH);
-const registryUpdatePlan = [];
+await fs.mkdir(API_DIR, { recursive: true });
+const registryIndex = await parseRegistryIndex(API_DIR);
+if (registryIndex.api !== API_VERSION) {
+  die(
+    `Expected API version ${API_VERSION}, but current API version is ${registryIndex.api}`,
+  );
+}
 
+const publishPlan = await parsePublishPlan(PUBLISH_PLAN_PATH);
 for (const it of publishPlan) {
   const { publisher, slug, widget, manifest } = it;
   const { path: tempDir, cleanup: cleanupTempDir } = await tmpDir({
@@ -57,6 +63,8 @@ for (const it of publishPlan) {
   console.log("::endgroup::");
   console.log(`::notice::Published: https://${remote}@${pushResult.digest}`);
 
+  await cleanupTempDir();
+
   await github.attestProvenance({ name: remote, digest: pushResult.digest });
   console.log(`::notice::Attested: oci://${remote}@${pushResult.digest}`);
 
@@ -67,21 +75,6 @@ for (const it of publishPlan) {
     publishedAt = createdAt;
   }
 
-  registryUpdatePlan.push({ ...it, publishedAt, digest: pushResult.digest });
-
-  await cleanupTempDir();
-}
-
-const now = new Date();
-await fs.mkdir(REGISTRY_DIR, { recursive: true });
-const registryIndex = await parseRegistryIndex(REGISTRY_DIR);
-registryIndex.api = API_VERSION;
-registryIndex.generatedAt = now.toISOString();
-
-console.log("Updating registry index...");
-
-for (const it of registryUpdatePlan) {
-  const { publisher, slug, widget, manifest, publishedAt, digest } = it;
   let entry = registryIndex.widgets.find(
     (e) => e.publisher === publisher && e.slug === slug,
   );
@@ -89,7 +82,7 @@ for (const it of registryUpdatePlan) {
   const releaseData = {
     version: widget.version,
     publishedAt,
-    digest,
+    digest: pushResult.digest,
   };
 
   const isPrivate = publisher === "deskulpt-test";
@@ -121,6 +114,9 @@ for (const it of registryUpdatePlan) {
   console.log("::endgroup::");
 }
 
+const now = new Date();
+registryIndex.generatedAt = now.toISOString();
+
 registryIndex.widgets.sort((a, b) => {
   if (a.publisher !== b.publisher) {
     return a.publisher.localeCompare(b.publisher);
@@ -128,5 +124,5 @@ registryIndex.widgets.sort((a, b) => {
   return a.slug.localeCompare(b.slug);
 });
 
-await writeRegistryIndex(REGISTRY_DIR, registryIndex);
+await writeRegistryIndex(API_DIR, registryIndex);
 console.log("Registry index updated");
