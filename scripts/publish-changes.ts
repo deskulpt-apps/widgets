@@ -4,11 +4,13 @@ import * as git from "./lib/git.ts";
 import * as github from "./lib/github.ts";
 import * as oras from "./lib/oras.ts";
 import { die, tmpDir } from "./lib/utils.ts";
+import { parsePublishPlan } from "./lib/schema.ts";
 import {
-  parsePublishPlan,
-  parseRegistryIndex,
-  writeRegistryIndex,
-} from "./lib/schema.ts";
+  parseApiIndex,
+  prependApiVersionsList,
+  writeApiIndex,
+  writeApiWidgetDetails,
+} from "./lib/api.ts";
 
 for (const varName of [
   "GHCR_REPO_PREFIX",
@@ -27,10 +29,10 @@ const API_DIR = process.env["API_DIR"]!;
 const API_VERSION = process.env["API_VERSION"]!;
 
 await fs.mkdir(API_DIR, { recursive: true });
-const registryIndex = await parseRegistryIndex(API_DIR);
-if (registryIndex.api !== API_VERSION) {
+const apiIndex = await parseApiIndex(API_DIR);
+if (apiIndex.api !== API_VERSION) {
   die(
-    `Expected API version ${API_VERSION}, but current API version is ${registryIndex.api}`,
+    `Expected API version ${API_VERSION}, but current API version is ${apiIndex.api}`,
   );
 }
 
@@ -75,54 +77,61 @@ for (const it of publishPlan) {
     publishedAt = createdAt;
   }
 
-  let entry = registryIndex.widgets.find(
+  let entry = apiIndex.widgets.find(
     (e) => e.publisher === publisher && e.slug === slug,
   );
 
-  const releaseData = {
-    version: widget.version,
+  writeApiWidgetDetails(API_DIR, publisher, slug, {
     publishedAt,
     digest: pushResult.digest,
-  };
+    manifest,
+  });
+  console.log(`[${publisher}/${slug}] Details written`);
+
+  prependApiVersionsList(API_DIR, publisher, slug, {
+    version: widget.version,
+    publishedAt,
+  });
+  console.log(`[${publisher}/${slug}] Versions list updated`);
 
   const isPrivate = publisher === "deskulpt-test";
+  const isOfficial = publisher === "deskulpt";
+  const authorNames = manifest.authors.map((author) =>
+    typeof author === "string" ? author : author.name,
+  );
 
   if (entry === undefined) {
     entry = {
       publisher,
       slug,
+      version: manifest.version,
       name: manifest.name,
-      authors: manifest.authors,
       description: manifest.description,
-      releases: [releaseData],
+      authors: authorNames,
       private: isPrivate ? true : undefined,
+      official: isOfficial ? true : undefined,
     };
-    registryIndex.widgets.push(entry);
-    console.log(`::group::[${publisher}/${slug}] Added new entry`);
-    console.log(entry);
-    console.log("::endgroup::");
+    apiIndex.widgets.push(entry);
     continue;
   }
 
+  entry.version = manifest.version;
   entry.name = manifest.name;
-  entry.authors = manifest.authors;
   entry.description = manifest.description;
-  entry.releases.unshift(releaseData); // Prepend new release
+  entry.authors = authorNames;
   entry.private = isPrivate ? true : undefined;
-  console.log(`::group::[${publisher}/${slug}] Updated entry`);
-  console.log(entry);
-  console.log("::endgroup::");
+  entry.official = isOfficial ? true : undefined;
 }
 
 const now = new Date();
-registryIndex.generatedAt = now.toISOString();
+apiIndex.generatedAt = now.toISOString();
 
-registryIndex.widgets.sort((a, b) => {
+apiIndex.widgets.sort((a, b) => {
   if (a.publisher !== b.publisher) {
     return a.publisher.localeCompare(b.publisher);
   }
   return a.slug.localeCompare(b.slug);
 });
 
-await writeRegistryIndex(API_DIR, registryIndex);
-console.log("Registry index updated");
+await writeApiIndex(API_DIR, apiIndex);
+console.log("Registry API index updated");

@@ -3,10 +3,8 @@ import fs from "node:fs/promises";
 import yaml from "yaml";
 import { z } from "zod";
 import * as git from "./git.ts";
-
-// See FAQ of https://semver.org/
-export const SEMVER_REGEX =
-  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+import { WidgetManifestSchema } from "./manifest.ts";
+import { SEMVER_REGEX } from "./utils.ts";
 
 // Safe identifier: lowercase letters, digits, underscores, hyphens; no leading,
 // trailing, or consecutive underscores or hyphens.
@@ -37,26 +35,6 @@ const WidgetsSchema = z.record(
   WidgetSchema,
 );
 
-const WidgetManifestAuthorSchema = z.union([
-  z.string(),
-  z.object({
-    name: z.string(),
-    email: z.email().optional(),
-    url: z.url().optional(),
-  }),
-]);
-
-// Widget manifest schema deskulpt.widget.json, but only keeping the fields we
-// care about with stricter validation for widgets to be published
-const WidgetManifestSchema = z.object({
-  name: z.string().min(1).max(80),
-  version: z.string().regex(SEMVER_REGEX),
-  authors: z.array(WidgetManifestAuthorSchema).min(1),
-  license: z.string(),
-  description: z.string().min(1).max(160),
-  homepage: z.url(),
-});
-
 const PublishPlanEntrySchema = z.object({
   publisher: z.string(),
   slug: z.string(),
@@ -65,44 +43,6 @@ const PublishPlanEntrySchema = z.object({
 });
 
 const PublishPlanSchema = z.array(PublishPlanEntrySchema);
-
-const OrasPushOutputSchema = z.object({
-  // https://github.com/opencontainers/image-spec/blob/26647a49f642c7d22a1cd3aa0a48e4650a542269/specs-go/v1/descriptor.go#L22
-  mediaType: z.string(),
-  digest: z.string(),
-  size: z.int(),
-  urls: z.array(z.string()).optional(),
-  annotations: z.record(z.string(), z.string()).optional(),
-  data: z.base64().optional(),
-  platform: z.object().optional(),
-  artifactType: z.string().optional(),
-  // https://github.com/oras-project/oras/blob/6c3e3e5a3e087ef2881cebb310f3d5fb6348b2ab/cmd/oras/internal/display/metadata/model/descriptor.go#L37
-  reference: z.string(),
-  // https://github.com/oras-project/oras/blob/6c3e3e5a3e087ef2881cebb310f3d5fb6348b2ab/cmd/oras/internal/display/metadata/model/push.go#L29
-  referenceAsTags: z.array(z.string()),
-});
-
-const RegistryEntryReleaseSchema = z.object({
-  version: z.string(),
-  publishedAt: z.iso.datetime(),
-  digest: z.string(),
-});
-
-const RegistryEntrySchema = z.object({
-  publisher: z.string(),
-  slug: z.string(),
-  name: z.string(),
-  authors: z.array(WidgetManifestAuthorSchema).min(1),
-  description: z.string(),
-  releases: z.array(RegistryEntryReleaseSchema).min(1),
-  private: z.boolean().optional(),
-});
-
-const RegistryIndexSchema = z.object({
-  api: z.string(),
-  generatedAt: z.iso.datetime(),
-  widgets: z.array(RegistryEntrySchema),
-});
 
 export async function parsePublisher(entry: string, commit: string) {
   const entryFile = path.join("publishers", `${entry}.yaml`);
@@ -141,31 +81,9 @@ export async function parsePublishPlan(file: string) {
   return PublishPlanSchema.parse(data);
 }
 
-export function parseOrasPushOutput(output: string) {
-  const obj = JSON.parse(output);
-  return OrasPushOutputSchema.parse(obj);
-}
-
-export async function parseRegistryIndex(dir: string) {
-  const indexFile = path.join(dir, "index.json");
-  const content = await fs.readFile(indexFile, "utf-8");
-  const data = JSON.parse(content);
-  return RegistryIndexSchema.parse(data);
-}
-
-export async function writeRegistryIndex(dir: string, index: RegistryIndex) {
-  const indexFile = path.join(dir, "index.json");
-  const content = JSON.stringify(index);
-  await fs.writeFile(indexFile, content, "utf-8");
-}
-
 export type Publisher = z.infer<typeof PublisherSchema>;
 export type Widget = z.infer<typeof WidgetSchema>;
 export type Widgets = z.infer<typeof WidgetsSchema>;
 export type WidgetManifest = z.infer<typeof WidgetManifestSchema>;
 export type PublishPlanEntry = z.infer<typeof PublishPlanEntrySchema>;
 export type PublishPlan = z.infer<typeof PublishPlanSchema>;
-export type OrasPushOutput = z.infer<typeof OrasPushOutputSchema>;
-export type RegistryEntryRelease = z.infer<typeof RegistryEntryReleaseSchema>;
-export type RegistryEntry = z.infer<typeof RegistryEntrySchema>;
-export type RegistryIndex = z.infer<typeof RegistryIndexSchema>;

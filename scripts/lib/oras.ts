@@ -1,7 +1,24 @@
+import { z } from "zod";
 import { exec } from "./process.ts";
-import { Widget, WidgetManifest, parseOrasPushOutput } from "./schema.ts";
+import { Widget, WidgetManifest } from "./schema.ts";
 
 const ORAS_CLI = process.env["ORAS_CLI"] ?? "oras";
+
+const OrasPushOutputSchema = z.object({
+  // https://github.com/opencontainers/image-spec/blob/26647a49f642c7d22a1cd3aa0a48e4650a542269/specs-go/v1/descriptor.go#L22
+  mediaType: z.string(),
+  digest: z.string(),
+  size: z.int(),
+  urls: z.array(z.string()).optional(),
+  annotations: z.record(z.string(), z.string()).optional(),
+  data: z.base64().optional(),
+  platform: z.object().optional(),
+  artifactType: z.string().optional(),
+  // https://github.com/oras-project/oras/blob/6c3e3e5a3e087ef2881cebb310f3d5fb6348b2ab/cmd/oras/internal/display/metadata/model/descriptor.go#L37
+  reference: z.string(),
+  // https://github.com/oras-project/oras/blob/6c3e3e5a3e087ef2881cebb310f3d5fb6348b2ab/cmd/oras/internal/display/metadata/model/push.go#L29
+  referenceAsTags: z.array(z.string()),
+});
 
 export async function push({
   src,
@@ -55,5 +72,6 @@ export async function push({
   );
 
   const result = await exec(ORAS_CLI, args, { cwd: src });
-  return parseOrasPushOutput(result.stdout);
+  const output = JSON.parse(result.stdout);
+  return OrasPushOutputSchema.parse(output);
 }

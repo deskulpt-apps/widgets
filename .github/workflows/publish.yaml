@@ -12,7 +12,7 @@ env:
   API_VERSION: 2025-12-30
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: publish
   cancel-in-progress: false
 
 jobs:
