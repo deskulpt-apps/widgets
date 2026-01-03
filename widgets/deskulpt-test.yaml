@@ -1,5 +1,5 @@
 basic:
-  version: 0.1.1
+  version: 0.1.2
   repo: https://github.com/deskulpt-apps/registry.git
-  commit: a3659f825fa870457240efd3e295e25f15e613fe
+  commit: 4ce61b8840e5800a2c3d1164e0db59bc26aeb279
   path: __tests__/widgets/basic
