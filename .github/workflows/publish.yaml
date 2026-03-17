@@ -41,7 +41,7 @@ jobs:
           git worktree remove -f "$API_DIR" || true
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
 
       - name: Node setup
         uses: actions/setup-node@v6
@@ -97,7 +97,7 @@ jobs:
 
       - name: Upload publish plan
         if: ${{ steps.validate-changes.outputs.HAS_PUBLISH_PLAN == '1' }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: publish-plan
           path: ${{ env.PUBLISH_PLAN_PATH }}
@@ -118,7 +118,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
 
       - name: Node setup
         uses: actions/setup-node@v6
@@ -138,7 +138,7 @@ jobs:
           echo "$GH_TOKEN" | oras login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       - name: Download publish plan
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: publish-plan
           path: .

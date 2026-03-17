@@ -30,7 +30,7 @@ jobs:
           git fetch --no-tags --depth=1 origin "$HEAD_SHA" || true
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
 
       - name: Node setup
         uses: actions/setup-node@v6
